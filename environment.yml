@@ -1,0 +1,13 @@
+name: lamah-ce_lstm  
+
+channels: &id1
+  - conda-forge
+
+dependencies:
+  - python>=3.10.*
+  - pip
+  - seaborn 
+  - umap-learn
+  
+  - pip: 
+    - neuralhydrology 
