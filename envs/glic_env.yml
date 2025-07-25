@@ -1,0 +1,30 @@
+name: lamah-ce_lstm
+
+channels:
+  - nvidia
+  - pytorch
+  - rapidsai
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.10
+  - pip
+
+  # CUDA stack (kompatibel mit PyTorch + cuML)
+  - nvidia::cuda=11.8
+  - cudnn
+  - pytorch::pytorch=2.0.1=py3.10_cuda11.8_cudnn8.7.0_0
+  - pytorch-cuda=11.8
+
+  # RAPIDS cuML
+  - cudatoolkit=11.8
+  - cuml=23.04
+
+  # weitere libs
+  - seaborn
+  - umap-learn
+
+  - pip:
+      - neuralhydrology
+
