@@ -47,7 +47,7 @@ output_activation: linear
 # ----> General settings <----
 
 # Number of cell states of the LSTM
-hidden_size: 20
+hidden_size: 128
 
 # Initial bias value of the forget gate
 initial_forget_bias: 3
@@ -70,7 +70,7 @@ learning_rate:
   40: 1e-3
 
 # Mini-batch size
-batch_size: 256
+batch_size: 1024
 
 # Number of training epochs
 epochs: 20
@@ -87,7 +87,7 @@ predict_last_n: 1
 seq_length: 365
 
 # Number of parallel workers used in the data pipeline
-num_workers: 1
+num_workers: 4
 
 # Log the training loss every n steps
 log_interval: 5
