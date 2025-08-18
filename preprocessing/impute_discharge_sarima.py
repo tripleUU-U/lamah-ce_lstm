@@ -48,9 +48,7 @@ def main():
     timeseries_paths = list(sorted(discharge_data_path.glob("*csv")))
 
     coverage_data_path = Path(r"/home/wuhlmann/BA/data/processed_data/eda/discharge_coverage.csv")
-
     coverage_df = pd.read_table(coverage_data_path, header=0, sep=";")
-
     target_basin_ids = list(coverage_df[coverage_df["num_missing_days"] != 0]["basin_id"])
 
     for path in timeseries_paths: 
