@@ -24,6 +24,7 @@ dependencies:
   # weitere libs
   - seaborn
   - umap-learn
+  - geopandas
 
   - pip:
       - neuralhydrology
