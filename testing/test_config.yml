@@ -21,7 +21,7 @@ device: cuda:0
 # --- Validation configuration ---------------------------------------------------------------------
 
 # specify after how many epochs to perform validation
-validate_every: 5
+validate_every: 1
 
 # specify how many random basins to use for validation
 validate_n_random_basins: 5
@@ -47,7 +47,7 @@ output_activation: linear
 # ----> General settings <----
 
 # Number of cell states of the LSTM
-hidden_size: 128
+hidden_size: 256
 
 # Initial bias value of the forget gate
 initial_forget_bias: 3
@@ -70,7 +70,7 @@ learning_rate:
   40: 1e-3
 
 # Mini-batch size
-batch_size: 1024
+batch_size: 4096 
 
 # Number of training epochs
 epochs: 20
@@ -84,10 +84,10 @@ predict_last_n: 1
 
 # Length of the input sequence
 # If use_frequencies is used, this needs to be a dict mapping each frequency to a seq_length, else an int.
-seq_length: 365
+seq_length: 365 
 
 # Number of parallel workers used in the data pipeline
-num_workers: 4
+num_workers: 8
 
 # Log the training loss every n steps
 log_interval: 5
@@ -99,7 +99,7 @@ log_tensorboard: True
 log_n_figures: 1
 
 # Save model weights every n epochs
-save_weights_every: 1
+save_weights_every: 5
 
 # --- Data configurations --------------------------------------------------------------------------
 
@@ -125,3 +125,7 @@ static_attributes:
   - area_calc
   - slope_mean
   - lai_max
+  - elev_mean
+  - frac_snow
+  - p_mean 
+  - et0_mean
