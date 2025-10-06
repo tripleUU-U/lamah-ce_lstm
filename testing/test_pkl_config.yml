@@ -19,10 +19,10 @@ device: cuda:0
 # --- Validation configuration ---------------------------------------------------------------------
 
 # specify after how many epochs to perform validation
-validate_every: 3
+validate_every: 1
 
 # specify how many random basins to use for validation
-validate_n_random_basins: 1
+validate_n_random_basins: 50
 
 # specify which metrics to calculate during validation (see neuralhydrology.evaluation.metrics)
 # this can either be a list or a dictionary. If a dictionary is used, the inner keys must match the name of the
@@ -45,7 +45,7 @@ output_activation: linear
 # ----> General settings <----
 
 # Number of cell states of the LSTM
-hidden_size: 20
+hidden_size: 64
 
 # Initial bias value of the forget gate
 initial_forget_bias: 3
@@ -68,10 +68,10 @@ learning_rate:
   40: 1e-3
 
 # Mini-batch size
-batch_size: 256
+batch_size: 4096 
 
 # Number of training epochs
-epochs: 50
+epochs: 30
 
 # If a value, clips the gradients during training to that norm.
 clip_gradient_norm: 1
