@@ -1,7 +1,7 @@
 # --- Experiment configurations --------------------------------------------------------------------
 
 # experiment name, used as folder name
-experiment_name: test_run
+experiment_name: no_q_filter
 
 # files to specify training, validation and test basins (relative to code root or absolute path)
 train_basin_file: "/home/wuhlmann/BA/data/processed_data/test_splits/train_basin_ids.txt"
