@@ -76,14 +76,21 @@ def main():
         q5 = q5 / (1000 * 86400) * area * 1e6
         q95 = q95 / (1000 * 86400) * area * 1e6
 
-        calc_q5 = np.percentile(discharge_timeseries["qobs"],5)
-        calc_q95 = np.percentile(discharge_timeseries["qobs"],95)
+        print(np.isnan(q5))
+
+        if np.isnan(q5) and np.isnan(q95): 
+
+            logger.info("No hydrological indices availabe, calculatin Q5 and Q95 from timeseries")
+
+            q5 = np.percentile(discharge_timeseries["qobs"][discharge_timeseries["qobs"]>0],5)
+            q95 = np.percentile(discharge_timeseries["qobs"],95)
 
         current_normal_period_duration = 0 
         current_normal_period_date_span = [None, None]
 
         basin_n_normal_days = 0
         basin_q_normal_periods = []
+
 
         for day in discharge_timeseries.index:
 
