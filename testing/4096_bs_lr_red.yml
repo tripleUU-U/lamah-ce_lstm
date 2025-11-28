@@ -1,7 +1,7 @@
 # --- Experiment configurations --------------------------------------------------------------------
 
 # experiment name, used as folder name
-experiment_name: no_q_filter
+experiment_name: 4096_bs_lr_red
 
 # files to specify training, validation and test basins (relative to code root or absolute path)
 train_basin_file: "/home/wuhlmann/BA/data/processed_data/test_splits/train_basin_ids.txt"
@@ -9,9 +9,9 @@ validation_basin_file: "/home/wuhlmann/BA/data/processed_data/test_splits/val_ba
 test_basin_file: "/home/wuhlmann/BA/data/processed_data/test_splits/test_basin_ids.txt"
 
 # training, validation and test time periods (format = 'dd/mm/yyyy')
-per_basin_train_periods_file: "/home/wuhlmann/BA/data/processed_data/test_splits/train.pkl"
-per_basin_validation_periods_file: "/home/wuhlmann/BA/data/processed_data/test_splits/val.pkl"
-per_basin_test_periods_file: "/home/wuhlmann/BA/data/processed_data/test_splits/test.pkl"
+per_basin_train_periods_file: "/home/wuhlmann/BA/data/processed_data/test_splits/train_q_filter.pkl"
+per_basin_validation_periods_file: "/home/wuhlmann/BA/data/processed_data/test_splits/val_q_filter.pkl"
+per_basin_test_periods_file: "/home/wuhlmann/BA/data/processed_data/test_splits/test_q_filter.pkl"
 
 # which GPU (id) to use [in format of cuda:0, cuda:1 etc, or cpu, mps or None]
 device: cuda:0
@@ -22,13 +22,16 @@ device: cuda:0
 validate_every: 1
 
 # specify how many random basins to use for validation
-validate_n_random_basins: 84 
+validate_n_random_basins: 86
 
 # specify which metrics to calculate during validation (see neuralhydrology.evaluation.metrics)
 # this can either be a list or a dictionary. If a dictionary is used, the inner keys must match the name of the
 # target_variable specified below. Using dicts allows for different metrics per target variable.
 metrics:
   - NSE
+  - KGE
+  - MSE
+  - RMSE
 
 # --- Model configuration --------------------------------------------------------------------------
 
@@ -45,7 +48,7 @@ output_activation: linear
 # ----> General settings <----
 
 # Number of cell states of the LSTM
-hidden_size: 64
+hidden_size: 256
 
 # Initial bias value of the forget gate
 initial_forget_bias: 3
@@ -63,14 +66,20 @@ loss: NSE
 
 # specify learning rates to use starting at specific epochs (0 is the initial learning rate)
 learning_rate:
-  0: 0.001
-  20: 0.0001
+  0: 0.0002
+  2: 0.0004
+  4: 0.0006
+  6: 0.0008
+  8: 0.001
+  20: 0.0005
+  30: 0.0001
+  40: 0.00001
 
 # Mini-batch size
-batch_size: 4096 
+batch_size: 4096
 
 # Number of training epochs
-epochs: 30
+epochs: 40
 
 # If a value, clips the gradients during training to that norm.
 clip_gradient_norm: 1
@@ -84,7 +93,7 @@ predict_last_n: 1
 seq_length: 365
 
 # Number of parallel workers used in the data pipeline
-num_workers: 8
+num_workers: 16
 
 # Log the training loss every n steps
 log_interval: 5
@@ -116,7 +125,7 @@ static_attributes:
   - elev_ran
   - slope_mean
   - p_mean
-  - eta_mean
+  - et0_mean
   - arid_1
   - p_season
   - hi_prec_fr
@@ -131,16 +140,15 @@ static_attributes:
   - lake_fra
   - urban_fra
   - lai_max
-  - ndvi_max
-  - ndvi_min
+  - lai_diff
+  - gvf_max
+  - gvf_diff
   - bedrk_dep
   - soil_poros
   - soil_condu
   - sand_fra
   - silt_fra
   - clay_fra
-  - grav_fra
-  - oc_fra
   
 # which columns to use as target
 target_variables:
@@ -150,4 +158,6 @@ target_variables:
 clip_targets_to_zero:
   - qobs
 
-save_train_data: True
+train_data_file: /home/wuhlmann/BA/data/cached_datasets/q_filter_with_fallback.p
+
+seed: 1277
