@@ -1,7 +1,7 @@
 # --- Experiment configurations --------------------------------------------------------------------
 
 # experiment name, used as folder name
-experiment_name: lr_red_256_bs
+experiment_name: full_q_512_lr_op 
 
 # files to specify training, validation and test basins (relative to code root or absolute path)
 train_basin_file: "/home/wuhlmann/BA/data/processed_data/test_splits/train_basin_ids.txt"
@@ -9,9 +9,9 @@ validation_basin_file: "/home/wuhlmann/BA/data/processed_data/test_splits/val_ba
 test_basin_file: "/home/wuhlmann/BA/data/processed_data/test_splits/test_basin_ids.txt"
 
 # training, validation and test time periods (format = 'dd/mm/yyyy')
-per_basin_train_periods_file: "/home/wuhlmann/BA/data/processed_data/test_splits/train_q_filter.pkl"
-per_basin_validation_periods_file: "/home/wuhlmann/BA/data/processed_data/test_splits/val_q_filter.pkl"
-per_basin_test_periods_file: "/home/wuhlmann/BA/data/processed_data/test_splits/test_q_filter.pkl"
+per_basin_train_periods_file: "/home/wuhlmann/BA/data/processed_data/test_splits/train_full_q.pkl"
+per_basin_validation_periods_file: "/home/wuhlmann/BA/data/processed_data/test_splits/val_full_q.pkl"
+per_basin_test_periods_file: "/home/wuhlmann/BA/data/processed_data/test_splits/test_full_q.pkl"
 
 # which GPU (id) to use [in format of cuda:0, cuda:1 etc, or cpu, mps or None]
 device: cuda:0
@@ -66,12 +66,23 @@ loss: NSE
 
 # specify learning rates to use starting at specific epochs (0 is the initial learning rate)
 learning_rate:
-  0: 0.0005
-  10: 0.0001
-  20: 0.00001
+  0: 0.001
+
+dynamic_learning_rate: True 
+
+patience_dynamic_learning_rate: 5 
+
+factor_dynamic_learning_rate: 0.1
+
+# After 5 epochs with no improvement, wait another 5 before stopping early. 
+early_stopping: True
+
+patience_early_stopping: 10
+
+minimum_epochs_before_early_stopping: 20
 
 # Mini-batch size
-batch_size: 256
+batch_size: 512
 
 # Number of training epochs
 epochs: 30
@@ -88,7 +99,7 @@ predict_last_n: 1
 seq_length: 365
 
 # Number of parallel workers used in the data pipeline
-num_workers: 24
+num_workers: 16
 
 # Log the training loss every n steps
 log_interval: 5
@@ -153,6 +164,6 @@ target_variables:
 clip_targets_to_zero:
   - qobs
 
-train_data_file: /home/wuhlmann/BA/data/cached_datasets/q_filter_with_fallback.p
+train_data_file: /home/wuhlmann/BA/data/cached_datasets/full_q.p
 
 seed: 1277
