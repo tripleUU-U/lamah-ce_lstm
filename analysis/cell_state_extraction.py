@@ -35,7 +35,8 @@ def extract_state_per_basin(
     cfg: Config, 
     phase: str, 
     scaler,
-    basin_id: str
+    basin_id: str,
+    gpu_id: int
 ) -> tuple[str, dict]: 
     """Parallalizable function, to extract cell state and average it."""
 
@@ -45,7 +46,7 @@ def extract_state_per_basin(
     }
 
     # Construct cuda:id string. 
-    device = torch.device("cuda:0")
+    device = torch.device(f"cuda:{gpu_id}")
 
     # Initialize model with base paramters from config. 
     ea_lstm = EALSTM(cfg=cfg)
@@ -120,11 +121,11 @@ def main():
             Path(f"/home/wuhlmann/BA/data/processed_data/test_splits/{path_phase}_basin_ids.txt")
         )
 
-        parallel_extractor = Parallel(n_jobs=2, verbose=10)
+        parallel_extractor = Parallel(n_jobs=3, verbose=10)
 
         phase_results_list = parallel_extractor(
-            delayed(extract_state_per_basin)(run_dir=run_dir, cfg=cfg, phase=phase, scaler=scaler, basin_id=basin_id) 
-            for basin_id in phase_basin_ids
+            delayed(extract_state_per_basin)(run_dir=run_dir, cfg=cfg, phase=phase, scaler=scaler, basin_id=basin_id, gpu_id=0)
+            for i, basin_id in enumerate(phase_basin_ids)
             )
         
         # Attach the new basins to existing list, to enable easy conversion to dict. 
