@@ -6,10 +6,7 @@ import logging
 from pathlib import Path
 
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics.pairwise import manhattan_distances
 from sklearn.manifold import MDS
-
-from scipy.spatial.distance import cosine
 
 def mds_basin(
     cell_states_path: Path,
@@ -20,7 +17,7 @@ def mds_basin(
         n_components=3,
         n_init=2,
         random_state=1277,
-        n_jobs=12
+        n_jobs=-1
     )
 
     with open(cell_states_path, "rb") as f:
