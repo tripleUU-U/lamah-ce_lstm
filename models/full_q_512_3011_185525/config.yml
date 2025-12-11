@@ -1,0 +1,93 @@
+batch_size: 512
+clip_gradient_norm: 1
+clip_targets_to_zero:
+- qobs
+commit_hash:
+data_dir: /home/wuhlmann/BA/data/raw_data/2_LamaH-CE_daily
+dataset: lamah_b
+device: cuda:0
+dynamic_inputs:
+- prec
+- 2m_temp_mean
+epochs: 30
+experiment_name: full_q_512
+head: regression
+hidden_size: 256
+img_log_dir: 
+  /storage/vast-gfz-hpc-01/home/wuhlmann/BA/test_runs/runs/full_q_512_3011_185525/img_log
+initial_forget_bias: 3
+learning_rate:
+  0: 0.001
+  10: 0.0005
+  20: 0.0001
+log_interval: 5
+log_n_figures: 1
+log_tensorboard: true
+loss: NSE
+metrics:
+- NSE
+- KGE
+- MSE
+- RMSE
+model: ealstm
+num_workers: 16
+number_of_basins: 685
+optimizer: Adam
+output_activation: linear
+output_dropout: 0.4
+package_version: 1.12.0
+per_basin_test_periods_file: 
+  /home/wuhlmann/BA/data/processed_data/test_splits/test_full_q.pkl
+per_basin_train_periods_file: 
+  /home/wuhlmann/BA/data/processed_data/test_splits/train_full_q.pkl
+per_basin_validation_periods_file: 
+  /home/wuhlmann/BA/data/processed_data/test_splits/val_full_q.pkl
+predict_last_n: 1
+run_dir: 
+  /storage/vast-gfz-hpc-01/home/wuhlmann/BA/test_runs/runs/full_q_512_3011_185525
+save_train_data: true
+save_weights_every: 5
+seed: 1277
+seq_length: 365
+static_attributes:
+- area_calc
+- elev_mean
+- elev_ran
+- slope_mean
+- p_mean
+- et0_mean
+- arid_1
+- p_season
+- hi_prec_fr
+- hi_prec_du
+- lo_prec_fr
+- lo_prec_du
+- frac_snow
+- agr_fra
+- bare_fra
+- forest_fra
+- glac_fra
+- lake_fra
+- urban_fra
+- lai_max
+- lai_diff
+- gvf_max
+- gvf_diff
+- bedrk_dep
+- soil_poros
+- soil_condu
+- sand_fra
+- silt_fra
+- clay_fra
+target_variables:
+- qobs
+test_basin_file: 
+  /home/wuhlmann/BA/data/processed_data/test_splits/test_basin_ids.txt
+train_basin_file: 
+  /home/wuhlmann/BA/data/processed_data/test_splits/train_basin_ids.txt
+train_dir: 
+  /storage/vast-gfz-hpc-01/home/wuhlmann/BA/test_runs/runs/full_q_512_3011_185525/train_data
+validate_every: 1
+validate_n_random_basins: 86
+validation_basin_file: 
+  /home/wuhlmann/BA/data/processed_data/test_splits/val_basin_ids.txt
