@@ -14,8 +14,9 @@ def mds_basin(
 ): 
     
     mds = MDS(
-        n_components=3,
-        n_init=2,
+        n_components=2,
+        n_init=10,
+        metric=False,
         random_state=1277,
         n_jobs=-1
     )
