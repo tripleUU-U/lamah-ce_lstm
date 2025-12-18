@@ -209,3 +209,4 @@ __marimo__/
 # Custom 
 
 **/train_data.p
+models/512_batch_size_2711_095750/test/model_epoch030/cell_states.p
