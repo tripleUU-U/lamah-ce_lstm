@@ -27,28 +27,35 @@ def mds_domain(
     # Extract the mean state of every basin.
     cell_states = np.vstack([cell_state_dict[b]["c_mean"] for b in cell_state_dict.keys()])
 
-    for dim in [2,3]:
+    # Set up scaler. 
+    scaler = StandardScaler()
+
+    logging.info(f"Min/Max of raw cellstates: {np.min(cell_states)} / {np.max(cell_states)}")
+    normalized_cell_states = scaler.fit_transform(cell_states)
+    logging.info(f"Min/Max of normalized cellstates: {np.min(normalized_cell_states)} / {np.max(normalized_cell_states)}")
     
+    for mode in ["metric", "non-metric"]: 
+
         mds= MDS(
-                n_components=dim,
+                n_components=2,
                 n_init=10,
                 max_iter=500,
-                metric=False, 
+                metric=True if mode == "metric" else False, 
                 random_state=1277,
                 n_jobs=-1
             )
 
-        logging.info(f"Calculating MDS for doman with shape {cell_states.shape} using: \n {mds.get_params()}.")
+        logging.info(f"Calculating MDS for domain with shape {cell_states.shape} using: \n {mds.get_params()}.")
 
-        out_dict[str(dim)]["raw"] = mds.fit_transform(cell_states)
-        logging.info(f"Finished MDS with raw values with {mds.stress_:.3f}.")
-
-        out_dict[str(dim)]["normal"] = mds.fit_transform(StandardScaler().fit_transform(cell_states))
-        logging.info(f"Finished MDS with normalized values with {mds.stress_:.3f}.")
+        out_dict[mode]["raw"] = mds.fit_transform(cell_states)
+        logging.info(f"Finished {mode} MDS with raw values with {mds.stress_:.3f}.")
+        
+        out_dict[mode]["normal"] = mds.fit_transform(normalized_cell_states)
+        logging.info(f"Finished {mode} MDS with normalized values with {mds.stress_:.3f}.")
 
      # Pickle results.
     try: 
-        out_path = cell_states_path.parent / f"{cell_states_path.stem}_means_mds_10_500.p"
+        out_path = cell_states_path.parent / f"{cell_states_path.stem}_mds.p"
 
         with open(out_path, "wb") as out: 
             pickle.dump(out_dict, out)

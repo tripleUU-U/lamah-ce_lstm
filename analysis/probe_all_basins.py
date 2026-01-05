@@ -116,17 +116,22 @@ def main():
 		with open(out_path, "wb") as out: 
 			pickle.dump(probe_results_dict, out)
 
-		logger.info(f"Cell states successfully saved at: {out_path}")
+		logger.info(f"Probing results successfully saved at: {out_path}")
 
 	except Exception as e: 
 
-		logger.error(f"Pickling of cell states failed:\n{e}")
+		logger.error(f"Pickling of probing results failed:\n{e}")
 
 	return
 
 
 if __name__ == "__main__":
 
+	logging.basicConfig(
+        level=logging.INFO,              
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
 	logger = logging.getLogger(__name__)
 
 	start_time = time.time()
