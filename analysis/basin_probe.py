@@ -4,9 +4,8 @@ import time
 import logging
 import pickle
 import pandas as pd
-import numpy as np
 from pathlib import Path
-from operator import itemgetter
+from collections import defaultdict
 from tqdm import tqdm
 
 #sk 
@@ -15,8 +14,9 @@ from sklearn.linear_model import ElasticNet
 from sklearn.metrics import r2_score, mean_absolute_error
 from sklearn.model_selection import KFold
 
-def get_data_from_basin(
+def probe_basin(
 	ts_path: Path,
+	target_var: str,
 	basin_id: int,
 	discharge_coverage: pd.DataFrame,
 	cell_state_dict: dict,
@@ -32,23 +32,15 @@ def get_data_from_basin(
 	ts.set_index("date", inplace=True)
 
 	# drop all columns except for 2m_mean_temp
-	temp = ts[["2m_temp_mean"]]
+	temp = ts[[target_var]]
 
 	# Cut temperature ts to match start and end date of the discharge ts, then remove the warmup period by only taking the len(c) days starting from the end. 
 	temp = temp[discharge_coverage.loc[basin_id,"start_date"]:discharge_coverage.loc[basin_id, "end_date"]]
 	temp = temp.iloc[-(len(cell_states)):]
 
-	basin_data_array = np.array([cell_states, temp.values])
-
-	return basin_data_array
-
-def fit_probe(
-	dataset
-): 
-
 	model = ElasticNet()
 	kfold = KFold(n_splits=5)
-	folds = list(kfold.split(dataset.keys()))
+	folds = list(kfold.split(cell_states, temp.values))
 
 	best_r2 = -100
 	best_model_id = None
@@ -56,20 +48,19 @@ def fit_probe(
 
 	# Do 5 fold validation and let the best model predict (probe) on the entire timeseries.
 	for i, f in zip([0, 1, 2, 3, 4], folds):
-
+		
 		train_ids = f[0]
 		test_ids = f[1]
 
-		training_set = np.hstack(itemgetter(*train_ids)(dataset))
-		test_set = np.hstack(itemgetter(*test_ids)(dataset))
+		target = temp.iloc[test_ids]
 
-		model.fit(X=training_set[0,:] y=training_set[1,:])
-		pred = model.predict(X=test_set[0,:])
+		model.fit(X=cell_states[train_ids], y=temp.iloc[train_ids])
+		pred = model.predict(X=cell_states[test_ids])
 
 		# Collect all models.
 		model_list.append(model)
 
-		r2 = r2_score(test_set[1,:], pred)
+		r2 = r2_score(target, pred)
 
 		if r2 > best_r2:
 			best_r2 = r2
@@ -77,11 +68,9 @@ def fit_probe(
 
 	best_model = model_list[best_model_id]
 	
-	total_data = np.hstack(dataset.values())
-	
-	total_pred = best_model.predict(total_data[0,:])
-	total_r2 = r2_score(total_data[1,:], total_pred)
-	total_mae = mean_absolute_error(total_data[1,:], total_pred)
+	total_pred = best_model.predict(cell_states)
+	total_r2 = r2_score(temp, total_pred)
+	total_mae = mean_absolute_error(temp, total_pred)
 
 	# Only the coeffiecents of the model are needed, since it's not used again. 
 	coef_list = best_model.coef_.tolist()
@@ -92,6 +81,9 @@ def fit_probe(
 def main():
 
 	cell_states_path = Path(sys.argv[1])
+	target_var = str(sys.argv[2])
+
+	logger.info(f"Setting up basin level probes for {target_var} on {cell_states_path.stem} cell states.")
 
 	with open(cell_states_path, "rb") as f: 
 		cell_state_dict = pickle.load(f)
@@ -104,30 +96,28 @@ def main():
 
 	ts_path = Path("/home/wuhlmann/BA/data/raw_data/2_LamaH-CE_daily/B_basins_intermediate_all/2_timeseries/daily")
 
-	probe_results_dict = {}
-
-	# Collect data from all basments. 
-	dataset = {}
+	# Collect r2 and model coefficients for each basement. 
+	probe_results_dict = defaultdict(dict)
 
 	for basin_id in tqdm(cell_state_dict.keys()):
 
-		basin_data_array = get_data_from_basin(
+		r2, mae, coef = probe_basin(
 			ts_path=ts_path,
-			basin_id=basin_id,
+			target_var=target_var,
+			basin_id=int(basin_id),
 			discharge_coverage=discharge_coverage,
 			cell_state_dict=cell_state_dict
 		)
-		dataset[basin_id] = basin_data_array
 
-	# Do CV on different basins
-	r2, mae, coef = fit_probe(
-		dataset=dataset
-	)
-	
-	# NVM i need to apply the probe to all basins individually.
+		logger.info(f"Basin {basin_id} probe reached R2 of {r2:.2f} and MAE of {mae:.2f}.")
+
+		probe_results_dict[basin_id]["R2"] = r2
+		probe_results_dict[basin_id]["MAE"] = mae
+		probe_results_dict[basin_id]["coef"] = coef
+
 
 	try: 
-		out_path = Path("/home/wuhlmann/BA/data/processed_data/probing") / f"{cell_states_path.stem}_domain_probe.p"
+		out_path = Path("/home/wuhlmann/BA/data/processed_data/probing") / f"{cell_states_path.stem}_{target_var}_basin_probe.p"
 
 		with open(out_path, "wb") as out: 
 			pickle.dump(probe_results_dict, out)
