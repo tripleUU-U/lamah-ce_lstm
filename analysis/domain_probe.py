@@ -115,7 +115,7 @@ def main():
 
 	probe_results_dict = defaultdict(dict)
 
-	# Collect data from all basments. 
+	# Collect data from all basins. 
 	dataset = {} 
 
 	logger.info("Collecting training data...")
