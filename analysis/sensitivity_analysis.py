@@ -1,0 +1,142 @@
+import time
+import logging
+import copy
+import torch 
+import pandas as pd
+import numpy as np
+import pickle as pkl
+
+from pathlib import Path
+from tqdm import tqdm 
+
+from neuralhydrology.datasetzoo import get_dataset
+from neuralhydrology.evaluation import get_tester
+from neuralhydrology.datautils.utils import load_scaler
+from neuralhydrology.modelzoo.ealstm import EALSTM
+from neuralhydrology.utils.config import Config
+
+def main():
+
+	# Load the config.
+	run_dir_path = Path("/home/wuhlmann/BA/test_runs/runs/full_q_512_3011_185525")
+	cfg = Config(run_dir_path / "config.yml")
+
+	# Set up tester and get the baseline NSE, with no attributes altered.
+	tester = get_tester(cfg=cfg, run_dir=run_dir_path, period="test", init_model=True)
+	raw_results = tester.evaluate(save_results=False, metrics=["NSE"])
+
+	# Get basin ids to iterate over.
+	basin_ids_list = list(tester.cached_datasets.keys())
+	
+	baseline_nse_values = np.array([raw_results[id]["1D"]["NSE"] for id in basin_ids_list])
+	
+	# Conduct sensitivity analysis.
+	noise_amounts = [-0.5,-0.1, 0.1, 0.5]
+
+	num_basins = len(basin_ids_list)
+	num_attr = len(cfg.static_attributes)
+	noise_levels = len(noise_amounts)
+
+	# 3D array with dim basin x attribute x noise_level, to hold raw numeric values
+	raw_array = np.zeros([num_basins, 3, noise_levels])
+
+	for attr_id in [0,1,2]:
+
+		logger.info(f"Altering {tester.cfg.static_attributes[attr_id]}...")
+
+		for noise_id in range(noise_levels): 
+
+			# restore original attributes values in tester
+			tester_copy = copy.deepcopy(tester)
+
+			# add noise to the attribute in every catchment
+			for id in basin_ids_list:	
+				tester_copy.cached_datasets[id]._attributes[id][attr_id] += noise_amounts[noise_id]
+
+			# run evaluation for the currrent noise level
+			tester_result_dict = tester_copy.evaluate(save_results=False, metrics=["NSE"])
+			nse_values = np.array([tester_result_dict[id]["1D"]["NSE"] for id in basin_ids_list])
+
+			# write NSE for all basins, for the current attribute and noise level	
+			raw_array[:, attr_id, noise_id] = abs(nse_values - baseline_nse_values)
+
+	# Transfrom the results array into a dict of dataframes, so the basin id can be assigned and sorting is enable trough pandas.
+	results_dict = {}
+
+	for i in range(len(basin_ids_list)): 
+		
+		results_dict[basin_ids_list[i]] = pd.DataFrame(data=raw_array[i,:,:], index=cfg.static_attributes[:3], columns=noise_amounts)
+
+	# Save raw nse deltas in case a different weighting scheme is needed.
+	raw_out_path = Path("/home/wuhlmann/BA/data/processed_data/SA") / f"{run_dir_path.stem}_raw_nse_deltas.p"
+
+	try: 
+		with open(raw_out_path, "wb") as out: 
+			pkl.dump(results_dict, out)	
+		logger.info(f"Successfully saved raw NSE deltas at {raw_out_path}")
+	
+	except Exception as e: 
+
+		logger.error(f"Pickling of raw NSE deltas failed:\n{e}")
+
+	ranks_dict = {}
+
+	# Calculate the attribute sensitivity ranking per basin. 
+	for id in results_dict.keys():
+
+		# Get df.
+		basin_df = results_dict[id]
+
+		# Create df to collect the ranks per noise level.
+		attr_ranks = pd.DataFrame(data=[0]*len(basin_df.index), index=basin_df.index, columns=["rank"], dtype="float")
+
+		attr_weights = [0.75, 1, 1, 0.75]
+
+		# Iterate over the noise level in the columns. 
+		for col, weight in zip(basin_df.columns, attr_weights):
+			
+			# Sort the df by that noise level, with higher values in the NSE deltas signaling higher sensitivity.  
+			order = list(basin_df.sort_values(by=col, ascending=False)[col].index)
+
+			# Add the weighted rank of the attribute to the results dict. 
+			for attr in basin_df.index: 
+
+				attr_ranks.loc[attr, "rank"] += (order.index(attr)) * weight
+
+		# Divide through number of noise levels to get mean rank and sort the attributes by that. 
+		mean_attr_ranks = attr_ranks.apply(lambda x: x/4)
+		mean_attr_ranks.sort_values(by="rank", ascending=True, inplace=True)
+
+		# Attach mean_attr_ranks for each basin. 
+		ranks_dict[id] = mean_attr_ranks
+	
+	mean_out_path = Path("/home/wuhlmann/BA/data/processed_data/SA") / f"{run_dir_path.stem}_raw_nse_deltas.p"
+
+	try: 
+		with open(mean_out_path, "wb") as out: 
+			pkl.dump(mean_attr_ranks, out)	
+		logger.info(f"Successfully saved weigthed mean attribute ranks at {mean_out_path}")
+	
+	except Exception as e: 
+
+		logger.error(f"Pickling of weighted mean attributed ranks failed:\n{e}")
+
+if __name__ == "__main__":
+
+	logging.basicConfig(
+		level=logging.INFO,              
+		format="%(asctime)s - %(levelname)s - %(message)s",
+		datefmt="%Y-%m-%d %H:%M:%S"
+	)
+	logger = logging.getLogger(__name__)
+
+	start_time = time.time()
+
+	main()
+
+	elapsed = time.time() - start_time
+	hours = int(elapsed // 3600)
+	minutes = int((elapsed % 3600) // 60)
+	seconds = elapsed % 60
+
+	logger.info(f"Sensitivity analysis completed in {hours:02d}:{minutes:02d}:{seconds:05.2f}")
