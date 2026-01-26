@@ -38,7 +38,7 @@ def probe_basin(
 	temp = temp[discharge_coverage.loc[basin_id,"start_date"]:discharge_coverage.loc[basin_id, "end_date"]]
 	temp = temp.iloc[-(len(cell_states)):]
 
-	model = ElasticNet()
+	model = ElasticNet(random_state=1277, max_iter=5000)
 	kfold = KFold(n_splits=5)
 	folds = list(kfold.split(cell_states, temp.values))
 

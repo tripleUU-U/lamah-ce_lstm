@@ -38,7 +38,7 @@ def main(
 	
 	baseline_nse_values = np.array([raw_results[id]["1D"]["NSE"] for id in basin_ids_list])
 	
-	# Conduct sensitivity analysis.
+	# Conduct sensitivity analysis. Dont do absolute noise, use relative instead. Intervall von [-10%, 10%] variance as sens measure. 
 	noise_amounts = [-1, -0.75, -0.5, -0.25, -0.1, 0.1, 0.25, 0.5, 0.75, 1]
 
 	num_basins = len(basin_ids_list)
