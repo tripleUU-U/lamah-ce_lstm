@@ -93,52 +93,54 @@ def main(
 
 		logger.error(f"Pickling of raw NSE deltas failed:\n{e}")
 
-	domain_ranks_dict = {}
+	# determine the variance of all nse deltas, and use that as metric
 
-	# Calculate the attribute sensitivity ranking per basin. 
-	for id in results_dict.keys():
-
-		# Get df.
-		basin_df = results_dict[id]
-
-		# Create df to collect the ranks per noise level.
-		basin_attr_ranks = pd.DataFrame(data=[0]*len(basin_df.index), index=basin_df.index, columns=["rank"], dtype="float")
-
-		attr_weights = [0.1, 0.25, 0.5, 0.75, 1, 1, 0.75, 0.5, 0.25, 0.1]
-
-		# Iterate over the noise level in the columns. 
-		for col, weight in zip(basin_df.columns, attr_weights):
-			
-			# Sort the df by that noise level, with higher values in the NSE deltas signaling higher sensitivity.  
-			order = list(basin_df.sort_values(by=col, ascending=False)[col].index)
-
-			# Add the weighted rank of the attribute to the results dict. 
-			for attr in basin_df.index: 
-
-				basin_attr_ranks.loc[attr, "rank"] += (order.index(attr)) * weight
-
-		# Divide through number of noise levels to get mean rank and sort the attributes by that. 
-		mean_basin_attr_ranks = basin_attr_ranks.apply(lambda x: x/len(noise_amounts))
-		mean_basin_attr_ranks.sort_values(by="rank", ascending=True, inplace=True)
-
-		# Attach mean_attr_ranks for each basin. 
-		domain_ranks_dict[id] = mean_basin_attr_ranks
-
-	domain_ranks_base_path = Path("/home/wuhlmann/BA/data/processed_data/SA/ranks")	
-
-	if not basins:
-		domain_ranks_out_path =  domain_ranks_base_path/ f"{run_dir_path.stem}_{tester.period}_ranks.p"
-	else:
-		domain_ranks_out_path =  domain_ranks_base_path/ f"{run_dir_path.stem}_{tester.period}_{tester.basins[0]}_{tester.basins[-1]}_ranks.p"
-
-	try: 
-		with open(domain_ranks_out_path, "wb") as out: 
-			pkl.dump(domain_ranks_dict, out)	
-		logger.info(f"Successfully saved weigthed mean attribute ranks at {domain_ranks_out_path}")
-	
-	except Exception as e: 
-
-		logger.error(f"Pickling of weighted mean attributed ranks failed:\n{e}")
+#	domain_ranks_dict = {}
+#
+#	# Calculate the attribute sensitivity ranking per basin. 
+#	for id in results_dict.keys():
+#
+#		# Get df.
+#		basin_df = results_dict[id]
+#
+#		# Create df to collect the ranks per noise level.
+#		basin_attr_ranks = pd.DataFrame(data=[0]*len(basin_df.index), index=basin_df.index, columns=["rank"], dtype="float")
+#
+#		attr_weights = [0.1, 0.25, 0.5, 0.75, 1, 1, 0.75, 0.5, 0.25, 0.1]
+#
+#		# Iterate over the noise level in the columns. 
+#		for col, weight in zip(basin_df.columns, attr_weights):
+#			
+#			# Sort the df by that noise level, with higher values in the NSE deltas signaling higher sensitivity.  
+#			order = list(basin_df.sort_values(by=col, ascending=False)[col].index)
+#
+#			# Add the weighted rank of the attribute to the results dict. 
+#			for attr in basin_df.index: 
+#
+#				basin_attr_ranks.loc[attr, "rank"] += (order.index(attr)) * weight
+#
+#		# Divide through number of noise levels to get mean rank and sort the attributes by that. 
+#		mean_basin_attr_ranks = basin_attr_ranks.apply(lambda x: x/len(noise_amounts))
+#		mean_basin_attr_ranks.sort_values(by="rank", ascending=True, inplace=True)
+#
+#		# Attach mean_attr_ranks for each basin. 
+#		domain_ranks_dict[id] = mean_basin_attr_ranks
+#
+#	domain_ranks_base_path = Path("/home/wuhlmann/BA/data/processed_data/SA/ranks")	
+#
+#	if not basins:
+#		domain_ranks_out_path =  domain_ranks_base_path/ f"{run_dir_path.stem}_{tester.period}_ranks.p"
+#	else:
+#		domain_ranks_out_path =  domain_ranks_base_path/ f"{run_dir_path.stem}_{tester.period}_{tester.basins[0]}_{tester.basins[-1]}_ranks.p"
+#
+#	try: 
+#		with open(domain_ranks_out_path, "wb") as out: 
+#			pkl.dump(domain_ranks_dict, out)	
+#		logger.info(f"Successfully saved weigthed mean attribute ranks at {domain_ranks_out_path}")
+#	
+#	except Exception as e: 
+#
+#		logger.error(f"Pickling of weighted mean attributed ranks failed:\n{e}")
 
 if __name__ == "__main__":
 
