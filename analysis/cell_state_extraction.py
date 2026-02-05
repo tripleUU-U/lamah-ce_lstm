@@ -121,7 +121,8 @@ def main():
             Path(f"/home/wuhlmann/BA/data/processed_data/test_splits/{path_phase}_basin_ids.txt")
         )
 
-        parallel_extractor = Parallel(n_jobs=3, verbose=10)
+        # 2 for A40, 3 for A100 (80 GB)
+        parallel_extractor = Parallel(n_jobs=2, verbose=10)
 
         phase_results_list = parallel_extractor(
             delayed(extract_state_per_basin)(run_dir=run_dir, cfg=cfg, phase=phase, scaler=scaler, basin_id=basin_id, gpu_id=0)
