@@ -15,7 +15,7 @@ from neuralhydrology.datautils.utils import load_scaler
 from neuralhydrology.utils.config import Config
 
 
-def get_morris_gradient(model: torch.nn.Module,
+def get_gradient(model: torch.nn.Module,
 						loader: torch.utils.data.DataLoader) -> torch.Tensor:
 	"""Updated from Kratzert et al. 2019, to work with EA-LSTM in NH package."""
 
@@ -32,10 +32,13 @@ def get_morris_gradient(model: torch.nn.Module,
 		
 		pred = model(batch)
 
+		# create mask to not compute gradients for days, where no discharge data exists, since these days are not in the set
+		mask = ~torch.isnan(batch["y"])
+
 		# compute gradients of prediction vector given the static attributes
 		grad = torch.autograd.grad(pred["y_hat"],
 								   batch["x_s"],
-								   grad_outputs=torch.ones_like(pred["y_hat"]),
+								   grad_outputs=mask.float(),
 								   create_graph=False)
 		
 		# results in tuple with one tensor shaped batch size x num static attributes
@@ -58,24 +61,32 @@ def main() -> None:
 
 	feature_ranking = {}
 
-	for period in ["train", "val", "test"]:
+	period_pbar = tqdm(["train", "val", "test"], position=1)
+
+	for period in period_pbar:
+		
+		logger.info(f"Conducting gradient analysis for {period} period.")
 
 		# conduct analysis for every basin, to identify locally mosty important attributes.
-		with open(f"/home/wuhlmann/BA/data/processed_data/{period}_splits/test_basin_ids.txt", "r") as test_basin_file: 
+		with open(f"/home/wuhlmann/BA/data/processed_data/test_splits/{period}_basin_ids.txt", "r") as test_basin_file: 
 	
 			basins = list(map(lambda x: x[:-1], test_basin_file.readlines()))
 
+		basin_pbar = tqdm(basins, position=2)
+
+		# rephrase for NH dataset
 		if period == "val": 
 			period = "validation"
 		
-		for basin in basins:
+		for basin in basin_pbar:
 			
 			ds_test = get_dataset(cfg=cfg, is_train=False, period=period, scaler=scaler, basin=basin)
 			loader = DataLoader(ds_test, batch_size=1024, shuffle=False, num_workers=0, collate_fn=ds_test.collate_fn)
 
-			gradients = get_morris_gradient(model, loader)
+			gradients = get_gradient(model, loader)
 
-			mean_abs_gradient = np.mean(np.abs(gradients), axis=0)
+			# The first 365 days of gradients are nan, if the data starts at 1981, since the first predictions can be made in 1982.
+			mean_abs_gradient = np.nanmean(np.abs(gradients), axis=0)
 
 			# convert to pandas Series
 			data = {}
@@ -86,7 +97,7 @@ def main() -> None:
 	out_path = Path(f"/home/wuhlmann/BA/data/processed_data/SA/gradients/{run_dir_path.stem}.p")
 
 	with open(out_path, "wb") as out: 
-		pickle.dump(feature_ranking, out_path)
+		pickle.dump(feature_ranking, out)
 	
 	logger.info(f"Successfully saved NSE deltas at {out_path}")
 
