@@ -1,0 +1,4 @@
+rng_seed: 1277
+kmeans_seed: 774
+sampling_seed: 1277
+['area_calc', 'elev_mean', 'elev_ran', 'slope_mean', 'p_mean', 'et0_mean', 'arid_1', 'p_season', 'hi_prec_fr', 'hi_prec_du', 'lo_prec_fr', 'lo_prec_du', 'frac_snow', 'agr_fra', 'bare_fra', 'forest_fra', 'glac_fra', 'lake_fra', 'urban_fra', 'lai_max', 'lai_diff', 'gvf_max', 'gvf_diff', 'bedrk_dep', 'soil_poros', 'soil_condu', 'sand_fra', 'silt_fra', 'clay_fra'] 
