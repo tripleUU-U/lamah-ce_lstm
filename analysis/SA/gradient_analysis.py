@@ -2,7 +2,7 @@ import time
 import logging 
 import numpy as np
 import torch
-import pandas as pd#
+import pandas as pd
 import pickle
 
 from pathlib import Path
@@ -56,7 +56,7 @@ def main() -> None:
 	model = EALSTM(cfg=cfg)
 	scaler = load_scaler(run_dir=run_dir_path)
 
-	model_weights = torch.load("/home/wuhlmann/BA/test_runs/runs/full_q_512_3011_185525/model_epoch030.pt", map_location="cuda:0")
+	model_weights = torch.load("/home/wuhlmann/BA/test_runs/runs/q_pred_landcover_0903_135428/model_epoch016.pt", map_location="cuda:0")
 	model.load_state_dict(model_weights)
 
 	feature_ranking = {}
@@ -68,7 +68,7 @@ def main() -> None:
 		logger.info(f"Conducting gradient analysis for {period} period.")
 
 		# conduct analysis for every basin, to identify locally mosty important attributes.
-		with open(f"/home/wuhlmann/BA/data/processed_data/test_splits/{period}_basin_ids.txt", "r") as test_basin_file: 
+		with open(f"/home/wuhlmann/BA/repo/lamah-ce_lstm/data/splits_incl_landcover/{period}_basin_ids.txt", "r") as test_basin_file: 
 	
 			basins = list(map(lambda x: x[:-1], test_basin_file.readlines()))
 

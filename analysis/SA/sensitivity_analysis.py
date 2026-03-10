@@ -56,7 +56,6 @@ def main(
 	# sort from - to + 
 	noise_amounts.sort()
 
-
 	num_basins = len(basin_ids_list)
 	num_attr = len(cfg.static_attributes)
 	noise_levels = len(noise_amounts)

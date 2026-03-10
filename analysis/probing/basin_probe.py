@@ -35,7 +35,7 @@ def probe_basin(
 	temp = ts[[target_var]]
 
 	# Cut temperature ts to match start and end date of the discharge ts, then remove the warmup period by only taking the len(c) days starting from the end. 
-	temp = temp[discharge_coverage.loc[basin_id,"start_date"]:discharge_coverage.loc[basin_id, "end_date"]]
+	#temp = temp[discharge_coverage.loc[basin_id,"start_date"]:discharge_coverage.loc[basin_id, "end_date"]]
 	temp = temp.iloc[-(len(cell_states)):]
 
 	model = ElasticNet(random_state=1277, max_iter=5000)
