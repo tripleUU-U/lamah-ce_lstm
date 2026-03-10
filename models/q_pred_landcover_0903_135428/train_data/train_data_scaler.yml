@@ -1,0 +1,94 @@
+attribute_means:
+  agr_fra: 0.35588775510204085
+  area_calc: 197.36409183673467
+  arid_1: 0.7387755102040816
+  bare_fra: 0.06613411078717202
+  bedrk_dep: 5.104854227405248
+  clay_fra: 0.20852332361516038
+  elev_mean: 935.1093294460642
+  elev_ran: 987.2463556851312
+  et0_mean: 2.2548979591836735
+  forest_fra: 0.41639795918367345
+  frac_snow: 0.17466472303206995
+  glac_fra: 0.0069533527696793
+  gvf_diff: 0.7127113702623906
+  gvf_max: 0.8395189504373177
+  hi_prec_du: 1.1785131195335277
+  hi_prec_fr: 12.513411078717203
+  lai_diff: 3.016443148688046
+  lai_max: 3.2979300291545193
+  lake_fra: 0.004093294460641399
+  lo_prec_du: 3.190349854227405
+  lo_prec_fr: 190.09096209912536
+  p_mean: 3.3888046647230325
+  p_season: 0.35488338192419827
+  sand_fra: 0.46111953352769675
+  silt_fra: 0.3303615160349854
+  slope_mean: 186.87463556851313
+  soil_condu: 0.25774198250728864
+  soil_poros: 0.4682361516034985
+  urban_fra: 0.048947521865889215
+attribute_stds:
+  agr_fra: 0.25677763494130085
+  area_calc: 255.45326779424445
+  arid_1: 0.27775579104272247
+  bare_fra: 0.14414428933753917
+  bedrk_dep: 7.713315336635017
+  clay_fra: 0.04776767264694125
+  elev_mean: 591.1893650953859
+  elev_ran: 721.4196864778467
+  et0_mean: 0.2090414091522408
+  forest_fra: 0.2101860849399844
+  frac_snow: 0.12326502742990585
+  glac_fra: 0.045770811265751096
+  gvf_diff: 0.13840993198462404
+  gvf_max: 0.12528007311878708
+  hi_prec_du: 0.04222780386034114
+  hi_prec_fr: 3.091821473886879
+  lai_diff: 0.8381541426469254
+  lai_max: 0.912220888733348
+  lake_fra: 0.017571461149856134
+  lo_prec_du: 0.34248664747798363
+  lo_prec_fr: 25.58144968198906
+  p_mean: 1.0018110752040856
+  p_season: 0.09219259965672733
+  sand_fra: 0.10027682995180665
+  silt_fra: 0.0661884981741163
+  slope_mean: 127.49800753364532
+  soil_condu: 0.22685252719819968
+  soil_poros: 0.027290428883985557
+  urban_fra: 0.05381995004686428
+xarray_feature_scale:
+  coords: {}
+  attrs: {}
+  dims: {}
+  data_vars:
+    2m_temp_mean:
+      dims: []
+      attrs: {}
+      data: 8.55617904663086
+    prec:
+      dims: []
+      attrs: {}
+      data: 5.757585048675537
+    qobs:
+      dims: []
+      attrs: {}
+      data: 3.086033344268799
+xarray_feature_center:
+  coords: {}
+  attrs: {}
+  dims: {}
+  data_vars:
+    2m_temp_mean:
+      dims: []
+      attrs: {}
+      data: 6.328331470489502
+    prec:
+      dims: []
+      attrs: {}
+      data: 3.3902134895324707
+    qobs:
+      dims: []
+      attrs: {}
+      data: 1.9417496919631958

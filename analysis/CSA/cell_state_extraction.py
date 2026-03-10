@@ -7,9 +7,6 @@ import pickle as pkl
 from pathlib import Path
 from tqdm import tqdm
 
-# parallel
-from joblib import Parallel, delayed
-
 # DL
 import torch
 from torch.utils.data import DataLoader
@@ -31,14 +28,14 @@ def get_basin_ids_from_txt(
     return ids_list[:-1]
 
 def extract_state_per_basin( 
-    run_dir: Path, 
+    run_dir: Path,
+    epoch: int,  
     cfg: Config, 
     phase: str, 
     scaler,
     basin_id: str,
-    gpu_id: int
 ) -> tuple[str, dict]: 
-    """Parallalizable function, to extract cell state and average it."""
+    """Function, to extract cell state and average it."""
 
     basin_dict = {
         "c_mean": None,
@@ -46,13 +43,13 @@ def extract_state_per_basin(
     }
 
     # Construct cuda:id string. 
-    device = torch.device(f"cuda:{gpu_id}")
+    device = torch.device("cuda:0")
 
     # Initialize model with base paramters from config. 
     ea_lstm = EALSTM(cfg=cfg)
 
     # Load the trained weights into the model. 
-    weights_path = run_dir / "model_epoch030.pt"
+    weights_path = run_dir / f"model_epoch0{epoch}.pt"
     weights = torch.load(str(weights_path), map_location=device)
     ea_lstm.load_state_dict(weights)
 
@@ -102,14 +99,15 @@ def extract_state_per_basin(
 def main(): 
 
     run_dir = Path(sys.argv[1])
+    epoch = int(sys.argv[2])
     cfg = Config(run_dir / "config.yml")
     scaler = load_scaler(run_dir=run_dir)
 
     cell_states_list = []
 
-    logger.info(f"Initialized script with {run_dir}")
+    logger.info(f"Initialized script with {run_dir} for epoch {epoch}.")
     
-    pbar = tqdm(["train","validation", "test"])
+    pbar = tqdm(["train","validation", "test"], position=0)
 
     for phase in pbar: 
 
@@ -120,18 +118,18 @@ def main():
         phase_basin_ids = get_basin_ids_from_txt(
             Path(f"/home/wuhlmann/BA/data/processed_data/test_splits/{path_phase}_basin_ids.txt")
         )
-
-        # 2 for A40, 3 for A100 (80 GB)
-        parallel_extractor = Parallel(n_jobs=2, verbose=10)
-
-        phase_results_list = parallel_extractor(
-            delayed(extract_state_per_basin)(run_dir=run_dir, cfg=cfg, phase=phase, scaler=scaler, basin_id=basin_id, gpu_id=0)
-            for i, basin_id in enumerate(phase_basin_ids)
-            )
         
-        # Attach the new basins to existing list, to enable easy conversion to dict. 
-        cell_states_list.extend(phase_results_list)
+        basin_pbar = tqdm(phase_basin_ids, position=1)
 
+        for basin_id in basin_pbar: 
+
+            cell_state_tuple = extract_state_per_basin(run_dir=run_dir, epoch=epoch, cfg=cfg, phase=phase, scaler=scaler, basin_id=basin_id)
+        
+            # Attach the new basins to existing list, to enable easy conversion to dict. 
+
+            cell_states_list.append(cell_state_tuple)
+
+    # Convert to dict
     cell_states_dict = dict(cell_states_list)
 
     # Pickle results.
