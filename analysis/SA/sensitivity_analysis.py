@@ -20,7 +20,9 @@ def main(
 ):
 
 	# Load the config.
-	run_dir_path = Path("/home/wuhlmann/BA/test_runs/runs/full_q_512_3011_185525")
+	run_dir_path = Path("/home/wuhlmann/BA/repo/lamah-ce_lstm/models/q_pred_landcover_0903_135428")
+	epoch = 16
+	logger.info(f"Conducting SA for {run_dir_path} at epoch {epoch}. ")
 	cfg = Config(run_dir_path / "config.yml")
 
 	# Set up tester and get the baseline NSE, with no attributes altered.
@@ -29,10 +31,10 @@ def main(
 	# If in training phase use basins splits to reduce computational load.
 	if basins:
 		tester.basins = basins
-		
+	
 	logger.info(f"Tester initialized for {tester.period} period with basins {tester.basins}")
 	logger.info("Conducting foward pass to calculate baseline NSE...")
-	raw_results = tester.evaluate(save_results=False, metrics=["NSE"])
+	raw_results = tester.evaluate(epoch=epoch, save_results=False, metrics=["NSE"])
 
 	# Get basin ids to iterate over.
 	basin_ids_list = list(tester.cached_datasets.keys())
@@ -49,7 +51,7 @@ def main(
 
 	for i in range(len(noise_ranges)-1): 
 		
-		base_noise_amounts = list(rng.uniform(low=noise_ranges[i],high=noise_ranges[i+1],size=5))
+		base_noise_amounts = list(rng.uniform(low=noise_ranges[i],high=noise_ranges[i+1],size=2))
 
 		noise_amounts.extend(list((map(lambda x: -x, base_noise_amounts))) + base_noise_amounts)
 
@@ -76,12 +78,12 @@ def main(
 			# restore original attributes values in tester
 			tester_copy = copy.deepcopy(tester)
 
-			# add noise to the attribute in every catchment
+			# add noise to th	e attribute in every catchment
 			for id in basin_ids_list:	
 				tester_copy.cached_datasets[id]._attributes[id][attr_id] += noise_amounts[noise_id]
 
 			# run evaluation for the currrent noise level
-			tester_result_dict = tester_copy.evaluate(save_results=False, metrics=["NSE"])
+			tester_result_dict = tester_copy.evaluate(epoch=epoch, save_results=False, metrics=["NSE"])
 			nse_values = np.array([tester_result_dict[id]["1D"]["NSE"] for id in basin_ids_list])
 
 			# write NSE for all basins, for the current attribute and noise level as difference with positive values meaning improvement compared to the baseline	
@@ -110,7 +112,7 @@ def main(
 	
 	except Exception as e: 
 
-		logger.error(f"Pickling of raw NSE deltas failed:\n{e}")
+		logger.error(f"Pickling of NSE deltas failed:\n{e}")
 
 if __name__ == "__main__":
 

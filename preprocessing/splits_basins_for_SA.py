@@ -2,7 +2,7 @@ from pathlib import Path
 import numpy as np
 
 # Path to the .txt holding the training basin ids.
-basin_id_path = Path("/home/wuhlmann/BA/data/processed_data/test_splits/train_basin_ids.txt") 
+basin_id_path = Path("/home/wuhlmann/BA/repo/lamah-ce_lstm/data/splits_incl_landcover/train_basin_ids.txt") 
 base_out_path = Path("/home/wuhlmann/BA/data/processed_data/SA/train_basin_splits")
 
 with open(basin_id_path, "r") as f:

@@ -17,7 +17,7 @@ def main() -> None:
 		logger.info(f"Evaluating {period} period.")
 
 		# Load the config.
-		run_dir_path = Path("/home/wuhlmann/BA/test_runs/runs/full_q_512_3011_185525")
+		run_dir_path = Path("/home/wuhlmann/BA/repo/lamah-ce_lstm/models/q_pred_landcover_0903_135428")
 		cfg = Config(run_dir_path / "config.yml")
 
 		# Set up tester and get the baseline NSE, with no attributes altered.
@@ -25,11 +25,11 @@ def main() -> None:
 		
 		logger.info(f"Tester initialized for {tester.period} period with basins {tester.basins}")
 		logger.info("Conducting forward pass to calculate metrics.")
-		raw_results = tester.evaluate(save_results=False, metrics=["NSE", "KGE", "MSE", "RMSE"])
+		raw_results = tester.evaluate(epoch=16, save_results=False, metrics=["NSE", "KGE", "MSE", "RMSE"])
 
 		eval_results_dict[period] = raw_results
 
-	domain_eval_results_path = Path("/home/wuhlmann/BA/data/processed_data/evaluation/domain_metrics.p")
+	domain_eval_results_path = Path(f"/home/wuhlmann/BA/data/processed_data/evaluation/{run_dir_path.stem}_domain_metrics.p")
 	
 	try: 
 		with open(domain_eval_results_path, "wb") as out: 

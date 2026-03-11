@@ -50,7 +50,7 @@ def get_gradient(model: torch.nn.Module,
 def main() -> None: 
 	
 	# load model version 
-	run_dir_path = Path("/home/wuhlmann/BA/test_runs/runs/full_q_512_3011_185525")
+	run_dir_path = Path("/home/wuhlmann/BA/test_runs/runs/q_pred_landcover_0903_135428")
 	cfg = Config(run_dir_path/"config.yml")
 
 	model = EALSTM(cfg=cfg)
