@@ -78,7 +78,7 @@ def main(
 			# restore original attributes values in tester
 			tester_copy = copy.deepcopy(tester)
 
-			# add noise to th	e attribute in every catchment
+			# add noise to the attribute in every catchment
 			for id in basin_ids_list:	
 				tester_copy.cached_datasets[id]._attributes[id][attr_id] += noise_amounts[noise_id]
 
