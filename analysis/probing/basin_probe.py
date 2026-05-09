@@ -18,7 +18,6 @@ def probe_basin(
 	ts_path: Path,
 	target_var: str,
 	basin_id: int,
-	discharge_coverage: pd.DataFrame,
 	cell_state_dict: dict,
 ):
 	# normalize cell states, since they are not necessarily on the same scale
@@ -35,10 +34,9 @@ def probe_basin(
 	temp = ts[[target_var]]
 
 	# Cut temperature ts to match start and end date of the discharge ts, then remove the warmup period by only taking the len(c) days starting from the end. 
-	#temp = temp[discharge_coverage.loc[basin_id,"start_date"]:discharge_coverage.loc[basin_id, "end_date"]]
 	temp = temp.iloc[-(len(cell_states)):]
 
-	model = ElasticNet(random_state=1277, max_iter=5000)
+	model = ElasticNet(random_state=1277, l1_ratio=0.15, max_iter=5000)
 	kfold = KFold(n_splits=5)
 	folds = list(kfold.split(cell_states, temp.values))
 
@@ -72,10 +70,7 @@ def probe_basin(
 	total_r2 = r2_score(temp, total_pred)
 	total_mae = mean_absolute_error(temp, total_pred)
 
-	# Only the coeffiecents of the model are needed, since it's not used again. 
-	coef_list = best_model.coef_.tolist()
-
-	return total_r2, total_mae, coef_list
+	return total_r2, total_mae, best_model
 
 
 def main():
@@ -90,9 +85,6 @@ def main():
 		
 	cell_state_dict = dict(sorted(cell_state_dict.items(), key=lambda item: int(item[0])))
 
-	# Get discharge coverage, to slice timeseries according to discharge timeseries.
-	with open("/home/wuhlmann/BA/data/processed_data/eda/normal_periods.pkl", "rb") as f: 
-		discharge_coverage = pickle.load(f)
 
 	ts_path = Path("/home/wuhlmann/BA/data/raw_data/2_LamaH-CE_daily/B_basins_intermediate_all/2_timeseries/daily")
 
@@ -101,11 +93,10 @@ def main():
 
 	for basin_id in tqdm(cell_state_dict.keys()):
 
-		r2, mae, coef = probe_basin(
+		r2, mae, best_model = probe_basin(
 			ts_path=ts_path,
 			target_var=target_var,
 			basin_id=int(basin_id),
-			discharge_coverage=discharge_coverage,
 			cell_state_dict=cell_state_dict
 		)
 
@@ -113,7 +104,7 @@ def main():
 
 		probe_results_dict[basin_id]["R2"] = r2
 		probe_results_dict[basin_id]["MAE"] = mae
-		probe_results_dict[basin_id]["coef"] = coef
+		probe_results_dict[basin_id]["model"] = best_model 
 
 
 	try: 

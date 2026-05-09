@@ -4,49 +4,49 @@ import time
 import logging
 
 from pathlib import Path
-
-from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import MDS
 
-def mds_basin(
-	cell_states_path: Path,
-	basin_id: str
-): 
-	
-	mds = MDS(
-		n_components=3,
-		n_init=1,
-		metric=False,
-		random_state=1277,
-		n_jobs=-1,
-		verbose=2
-	)
+def mds_basin(cell_states_path: Path, basin_id: str):
 
-	with open(cell_states_path, "rb") as f:
-		cell_state_dict = pickle.load(f)
+    with open(cell_states_path, "rb") as f:
+        cell_state_dict = pickle.load(f)
+        cell_states = cell_state_dict[basin_id]["c_last"]
 
-		# Only take the states of the requested basin.
-		cell_states = cell_state_dict[basin_id]["c_last"]
+    logging.info(f"Starting MDS for Basin {basin_id}, Shape: {cell_states.shape}")
 
-	out_dict = {}
+    out_dict = {}
+    
+    for n in [2, 3]: 
 
-	logging.info(f"Calculating MDS for basin {basin_id} with shape {cell_states.shape} using: \n {mds.get_params()}.")
+        mds = MDS(
+            n_components=n,
+            n_init=4,
+            metric=True,
+            random_state=1277,
+            n_jobs=-1,
+            max_iter=1000,
+            verbose=2,
+            normalized_stress=True
+        )
 
-	out_dict["raw"] = mds.fit_transform(cell_states)
-	logging.info(f"Finished MDS with raw values.")
+        mds.fit_transform(cell_states)
 
-	# Pickle results.
-	try: 
-		out_path = cell_states_path.parent / f"{cell_states_path.stem}_{basin_id}.p"
+        logger.info(f"Final stress {n}D: {mds.stress_}")
 
-		with open(out_path, "wb") as out: 
-			pickle.dump(out_dict, out)
+        out_dict[n] = mds
 
-		logger.info(f"Cell states successfully saved at: {out_path}")
+    try:
+        out_path = cell_states_path.parent / f"{cell_states_path.stem}_{basin_id}_mds.p"
+        
+        with open(out_path, "wb") as out:
+            pickle.dump(out_dict, out)
 
-	except Exception as e: 
+        logging.info(f"Gespeichert unter: {out_path}")
 
-		logger.error(f"Pickling of cell states failed:\n{e}")
+    except Exception as e:
+
+        logger.error(f"Pickling of cell states failed:\n{e}")
+
 
 def main():
 

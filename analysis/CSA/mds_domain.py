@@ -4,13 +4,10 @@ import time
 import logging
 
 import numpy as np
-
-from pathlib import Path
 from collections import defaultdict
 
-from sklearn.preprocessing import StandardScaler
+from pathlib import Path
 from sklearn.manifold import MDS
-from scipy.spatial.distance import pdist, squareform
 
 def mds_domain(
     cell_states_path: Path
@@ -19,50 +16,45 @@ def mds_domain(
     with open(cell_states_path, "rb") as f:
        cell_state_dict = pickle.load(f)
 
-    out_dict = defaultdict(dict)
-
     # Sort so that the states match the id order of basins.
     cell_state_dict = dict(sorted(cell_state_dict.items(), key=lambda item: int(item[0])))
 
     # Extract the mean state of every basin.
     cell_states = np.vstack([cell_state_dict[b]["c_mean"] for b in cell_state_dict.keys()])
 
-    # Set up scaler. 
-    scaler = StandardScaler()
-
-    logging.info(f"Min/Max of raw cellstates: {np.min(cell_states)} / {np.max(cell_states)}")
-    normalized_cell_states = scaler.fit_transform(cell_states)
-    logging.info(f"Min/Max of normalized cellstates: {np.min(normalized_cell_states)} / {np.max(normalized_cell_states)}")
+    out_dict = defaultdict(dict)
     
-    for mode in ["metric", "non-metric"]: 
+    for metric in [True, False]: 
 
-        mds= MDS(
-                n_components=2,
+        for n in [2, 3]: 
+
+            mds = MDS(
+                n_components=n,
                 n_init=10,
-                max_iter=500,
-                metric=True if mode == "metric" else False, 
+                metric=metric,
                 random_state=1277,
-                n_jobs=-1
+                n_jobs=-1,
+                max_iter=500,
+                normalized_stress=True
             )
 
-        logging.info(f"Calculating MDS for domain with shape {cell_states.shape} using: \n {mds.get_params()}.")
+            mds.fit_transform(cell_states)
 
-        out_dict[mode]["raw"] = mds.fit_transform(cell_states)
-        logging.info(f"Finished {mode} MDS with raw values with {mds.stress_:.3f}.")
-        
-        out_dict[mode]["normal"] = mds.fit_transform(normalized_cell_states)
-        logging.info(f"Finished {mode} MDS with normalized values with {mds.stress_:.3f}.")
+            metric_str = "metric" if metric else "non_metric"
 
-     # Pickle results.
-    try: 
+            logger.info(f"Final stress {metric_str} {n}D: {mds.stress_}")
+
+            out_dict[metric_str][n] = mds
+
+    try:
         out_path = cell_states_path.parent / f"{cell_states_path.stem}_mds.p"
-
-        with open(out_path, "wb") as out: 
+        
+        with open(out_path, "wb") as out:
             pickle.dump(out_dict, out)
 
-        logger.info(f"Cell states successfully saved at: {out_path}")
+        logging.info(f"Gespeichert unter: {out_path}")
 
-    except Exception as e: 
+    except Exception as e:
 
         logger.error(f"Pickling of cell states failed:\n{e}")
 
