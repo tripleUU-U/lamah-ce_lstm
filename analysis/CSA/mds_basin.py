@@ -24,7 +24,7 @@ def mds_basin(cell_states_path: Path, basin_id: str):
             metric=True,
             random_state=1277,
             n_jobs=-1,
-            max_iter=1000,
+            max_iter=2000,
             verbose=2,
             normalized_stress=True
         )
@@ -36,7 +36,7 @@ def mds_basin(cell_states_path: Path, basin_id: str):
         out_dict[n] = mds
 
     try:
-        out_path = cell_states_path.parent / f"{cell_states_path.stem}_{basin_id}_mds.p"
+        out_path = cell_states_path.parent / f"{cell_states_path.stem}_{basin_id}_2k_mds.p"
         
         with open(out_path, "wb") as out:
             pickle.dump(out_dict, out)
