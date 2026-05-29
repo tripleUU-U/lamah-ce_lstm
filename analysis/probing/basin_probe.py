@@ -36,6 +36,7 @@ def probe_basin(
 	# Cut temperature ts to match start and end date of the discharge ts, then remove the warmup period by only taking the len(c) days starting from the end. 
 	temp = temp.iloc[-(len(cell_states)):]
 
+	# set l1 to 1, to confirm theory that all dimensions being used to represent swe, is because the model needs to compute a very high sum of swe 
 	model = ElasticNet(random_state=1277, l1_ratio=0.15, max_iter=5000)
 	kfold = KFold(n_splits=5)
 	folds = list(kfold.split(cell_states, temp.values))
@@ -85,7 +86,6 @@ def main():
 		
 	cell_state_dict = dict(sorted(cell_state_dict.items(), key=lambda item: int(item[0])))
 
-
 	ts_path = Path("/home/wuhlmann/BA/data/raw_data/2_LamaH-CE_daily/B_basins_intermediate_all/2_timeseries/daily")
 
 	# Collect r2 and model coefficients for each basement. 
@@ -108,7 +108,7 @@ def main():
 
 
 	try: 
-		out_path = Path("/home/wuhlmann/BA/data/processed_data/probing") / f"{cell_states_path.stem}_{target_var}_basin_probe.p"
+		out_path = Path("/home/wuhlmann/BA/data/processed_data/probing") / f"{cell_states_path.stem}_{target_var}_div_basin_probe.p"
 
 		with open(out_path, "wb") as out: 
 			pickle.dump(probe_results_dict, out)
